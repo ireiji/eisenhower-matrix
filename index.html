@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eisenhower Matrix</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Eisenhower Matrix v1</h1>
+  <div class="matrix">
+    <div class="quadrant" id="urgent-important">
+      <h2>Urgent & Important</h2>
+      <div class="task-list" id="urgent-important-tasks"></div>
+    </div>
+    <div class="quadrant" id="not-urgent-important">
+      <h2>Not Urgent & Important</h2>
+      <div class="task-list" id="not-urgent-important-tasks"></div>
+    </div>
+    <div class="quadrant" id="urgent-not-important">
+      <h2>Urgent & Not Important</h2>
+      <div class="task-list" id="urgent-not-important-tasks"></div>
+    </div>
+    <div class="quadrant" id="not-urgent-not-important">
+      <h2>Not Urgent & Not Important</h2>
+      <div class="task-list" id="not-urgent-not-important-tasks"></div>
+    </div>
+  </div>
+  <div class="controls">
+    <input type="text" id="task-input" placeholder="Add a new task">
+    <button onclick="addTask()">Add Task</button>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
