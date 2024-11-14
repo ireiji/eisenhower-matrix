@@ -6,6 +6,16 @@ body {
     padding: 0;
   }
   
+  .bg-img {
+    filter: blur(8px);
+    -webkit-filter: blur(8px);
+    height: 100%;
+    position: fixed;
+    top: -10px;
+    left: -10px;
+    z-index: -1;
+  }
+
   h1 {
     color: #333;
   }
