@@ -1,117 +1,365 @@
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background-color: #f4f4f9;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .bg-img {
-    filter: blur(8px);
-    -webkit-filter: blur(8px);
-    height: 100%;
-    position: fixed;
-    top: -10px;
-    left: -10px;
-    z-index: -1;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
-  h1 {
-    color: #333;
+body {
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 20px;
+  color: #2c3e50;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.bg-img {
+  filter: blur(8px);
+  -webkit-filter: blur(8px);
+  height: 100%;
+  position: fixed;
+  top: -10px;
+  left: -10px;
+  z-index: -1;
+}
+
+h1 {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 2.5em;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 20px;
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 20px;
+  min-height: calc(100vh - 250px);
+}
+
+.quadrant {
+  min-height: 200px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  border: none;
+  border-radius: 15px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  backdrop-filter: blur(5px);
+}
+
+.quadrant:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.quadrant h2 {
+  font-size: 1.1em;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.task-list {
+  flex-grow: 1;
+  min-height: 100px;
+  height: auto;
+  position: relative;
+}
+
+.task {
+  padding: 12px 15px;
+  margin: 8px 0;
+  background-color: #fff;
+  border-radius: 8px;
+  cursor: grab;
+  transform-origin: center center;
+  user-select: none;
+  position: relative;
+  transition: all 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-size: 0.95em;
+  color: #34495e;
+  border-left: 4px solid #3498db;
+  width: auto;
+}
+
+.task:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task.done {
+  text-decoration: line-through;
+  background-color: #f8f9fa;
+  border-left-color: #2ecc71;
+  color: #7f8c8d;
+}
+
+.controls {
+  margin: 30px auto;
+  max-width: 500px;
+}
+
+#task-input {
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 25px;
+  border: 2px solid #e0e0e0;
+  width: 300px;
+  margin-right: 10px;
+  background-color: white;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+#task-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+#task-input::placeholder {
+  color: #95a5a6;
+}
+
+button {
+  padding: 12px 25px;
+  font-size: 1em;
+  color: #fff;
+  background-color: #3498db;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+}
+
+button:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+/* Quadrant-specific colors */
+#urgent-important .task {
+  border-left-color: #e74c3c;
+}
+
+#not-urgent-important .task {
+  border-left-color: #f1c40f;
+}
+
+#urgent-not-important .task {
+  border-left-color: #e67e22;
+}
+
+#not-urgent-not-important .task {
+  border-left-color: #9b59b6;
+}
+
+/* Keep existing styles for context menu, edit menu, etc. */
+
+.delete-btn {
+  background-color: #e57373;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0 5px;
+  font-size: 0.8em;
+  float: right;
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+  transition: 0.5s;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+
+body.delete-zone::after {
+  opacity: 1;
+}
+
+.context-menu {
+  position: fixed;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  min-width: 180px;
+  z-index: 1000;
+  transform-origin: top;
+  animation: contextMenuSlide 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+@keyframes contextMenuSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
   }
-  
-  .matrix {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 10px;
-    max-width: 800px;
-    margin: 20px auto;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
-  
-  .quadrant {
-    border: 2px solid #333;
-    border-radius: 8px;
-    padding: 10px;
-    background-color: #e0f7fa;
+}
+
+.context-menu-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #333;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+}
+
+.context-menu-item:hover {
+  background-color: #f5f5f5;
+  padding-left: 20px;
+}
+
+.context-menu-item i {
+  font-size: 14px;
+  width: 20px;
+  opacity: 0.8;
+}
+
+.context-menu-item:not(:last-child) {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.edit-menu {
+  position: fixed;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  z-index: 1000;
+  min-width: 300px;
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
   }
-  
-  .quadrant h2 {
-    font-size: 1.2em;
-    color: #333;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
-  
-  .task-list {
-    min-height: 100px;
-  }
-  
-  .task {
-    padding: 5px 10px;
-    margin: 5px 0;
-    background-color: #ffecb3;
-    border-radius: 5px;
-    cursor: grab;
-  }
-  
-  .task.done {
-    text-decoration: line-through;
-    background-color: #c8e6c9;
-  }
-  
-  .controls {
-    margin: 20px;
-  }
-  
-  #task-input {
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 2px solid #ccc;
-    width: 300px;
-    margin-bottom: 20px;
-    background-color: #fff;
-    transition: all 0.3s ease;
-  }
-  
-  #task-input:focus {
-    outline: none;
-    border-color: #5c9ecf; /* Light blue border on focus */
-    box-shadow: 0 0 5px rgba(92, 158, 207, 0.6);
-    transition: 0.3s;
-  }
-  
-  #task-input::placeholder {
-    color: #888;
-  }
-  
-  button {
-    padding: 10px 20px;
-    font-size: 1em;
-    color: #fff;
-    background-color: #0288d1;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #0277bd;
-    transition: 0.5s;
-  }
-  .delete-btn {
-    background-color: #e57373;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    padding: 0 5px;
-    font-size: 0.8em;
-    float: right;
-  }
-  
-  .delete-btn:hover {
-    background-color: #d32f2f;
-    transition: 0.5s;
-  }
-  
-  
+}
+
+.edit-menu::before {
+  content: 'Edit Task';
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.edit-menu input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.edit-menu input:focus {
+  outline: none;
+  border-color: #0288d1;
+  box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.1);
+}
+
+.edit-menu .buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.edit-menu button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.edit-menu button.save {
+  background-color: #0288d1;
+  color: white;
+}
+
+.edit-menu button.cancel {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.edit-menu button.cancel:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+.edit-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.edit-overlay.active {
+  opacity: 1;
+}
+
+.task.dragging {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  cursor: grabbing;
+  background-color: #fff;
+  width: 200px !important;
+}
