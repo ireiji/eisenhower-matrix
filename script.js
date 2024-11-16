@@ -140,6 +140,12 @@ function deleteTask(taskId) {
 }
 
 function onDragStart(event, taskId, element) {
+
+  if (contextMenu) {
+    contextMenu.remove();
+    contextMenu = null;
+  }
+  
   event.preventDefault();
   
   const rect = element.getBoundingClientRect();
