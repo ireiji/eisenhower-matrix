@@ -10,3 +10,4 @@
 ###         - Dragging a task outside the grid will delete it
 ###         - Task Animation
 ###         - Edit Task Feature
+### v1.3 -> UI Changes
