@@ -12,6 +12,7 @@ let velocityY = 0;
 let animationFrameId = null;
 let contextMenu = null;
 let editMenu = null;
+let lastDueCheck = null;
 
 function addTask() {
   const taskInput = document.getElementById('task-input');
@@ -48,10 +49,32 @@ function renderTasks() {
         const taskElement = document.createElement('div');
         taskElement.className = `task${task.done ? ' done' : ''}`;
         
+        // Add due date classes if needed
+        if (task.dueDate) {
+          const dueDate = new Date(task.dueDate);
+          const now = new Date();
+          const hoursUntilDue = (dueDate - now) / (1000 * 60 * 60);
+          
+          if (hoursUntilDue < 0) {
+            taskElement.classList.add('overdue');
+          } else if (hoursUntilDue < 24) {
+            taskElement.classList.add('due-soon');
+          }
+        }
+        
         const textSpan = document.createElement('span');
         textSpan.setAttribute('data-id', task.id);
         textSpan.textContent = task.text;
         taskElement.appendChild(textSpan);
+        
+        // Add due date display if exists
+        if (task.dueDate) {
+          const dueDate = new Date(task.dueDate);
+          const dueDateElement = document.createElement('div');
+          dueDateElement.className = 'due-date';
+          dueDateElement.textContent = formatDueDate(dueDate);
+          taskElement.appendChild(dueDateElement);
+        }
         
         taskElement.onclick = () => toggleDone(task.id);
         taskElement.onmousedown = e => {
@@ -434,6 +457,152 @@ function isInsideAnyQuadrant(x, y) {
   return !!findQuadrantAtPoint(x, y);
 }
 
+function exportMatrix() {
+  const exportData = {
+    version: '1.0',
+    timestamp: new Date().toISOString(),
+    tasks: tasks
+  };
+
+  const dataStr = JSON.stringify(exportData, null, 2);
+  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+  
+  // Create download link
+  const url = URL.createObjectURL(dataBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `eisenhower-matrix-${new Date().toISOString().split('T')[0]}.json`;
+  
+  // Trigger download
+  document.body.appendChild(link);
+  link.click();
+  
+  // Cleanup
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 100);
+}
+
+function importMatrix(file) {
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      
+      // Validate imported data
+      if (!importedData.tasks || !Array.isArray(importedData.tasks)) {
+        throw new Error('Invalid file format');
+      }
+      
+      // Replace current tasks with imported ones
+      tasks = importedData.tasks;
+      saveTasks();
+      renderTasks();
+      
+      // Show success message
+      showNotification('Matrix imported successfully!', 'success');
+      
+    } catch (error) {
+      showNotification('Error importing matrix: Invalid file format', 'error');
+    }
+  };
+  
+  reader.onerror = function() {
+    showNotification('Error reading file', 'error');
+  };
+  
+  reader.readAsText(file);
+}
+
+function showNotification(message, type = 'success') {
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  
+  // Update this part to include 'Warning' for warning type
+  const title = {
+    'success': 'Success',
+    'error': 'Error',
+    'warning': 'Warning'
+  }[type] || 'Notification';
+
+  notification.innerHTML = `
+    <div style="display: flex; flex-direction: column; align-items: flex-start; flex: 1;">
+      <div style="font-weight: 600; margin-bottom: 2px;">${title}</div>
+      <div style="font-size: 13px; opacity: 0.8;">${message}</div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Trigger animation
+  requestAnimationFrame(() => {
+    notification.style.transform = 'translateX(-50%) translateY(0)';
+    notification.style.opacity = '1';
+  });
+  
+  // Remove after delay
+  setTimeout(() => {
+    notification.style.transform = 'translateX(-50%) translateY(-20px)';
+    notification.style.opacity = '0';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+function formatDueDate(date) {
+  const now = new Date();
+  const hoursUntilDue = (date - now) / (1000 * 60 * 60);
+  
+  if (hoursUntilDue < 0) {
+    return `Overdue: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  } else if (hoursUntilDue < 24) {
+    return `Due today at ${date.toLocaleTimeString()}`;
+  } else if (hoursUntilDue < 48) {
+    return `Due tomorrow at ${date.toLocaleTimeString()}`;
+  } else {
+    return `Due ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  }
+}
+
+function checkDueDates() {
+  const now = new Date();
+  
+  // Don't check more than once per minute
+  if (lastDueCheck && (now - lastDueCheck) < 60000) return;
+  
+  lastDueCheck = now;
+  
+  const dueTasks = tasks.filter(task => {
+    if (!task.dueDate || task.done) return false;
+    
+    const dueDate = new Date(task.dueDate);
+    const hoursUntilDue = (dueDate - now) / (1000 * 60 * 60);
+    
+    return hoursUntilDue >= 0 && hoursUntilDue <= 24;
+  });
+  
+  if (dueTasks.length > 0) {
+    const message = dueTasks.length === 1
+      ? `Task "${dueTasks[0].text}" is due in ${formatTimeUntil(new Date(dueTasks[0].dueDate))}`
+      : `${dueTasks.length} tasks are due in the next 24 hours`;
+      
+    showNotification(message, 'warning');
+  }
+}
+
+function formatTimeUntil(date) {
+  const now = new Date();
+  const hoursUntilDue = (date - now) / (1000 * 60 * 60);
+  
+  if (hoursUntilDue < 1) {
+    const minutesUntilDue = hoursUntilDue * 60;
+    return `${Math.round(minutesUntilDue)} minutes`;
+  } else {
+    return `${Math.round(hoursUntilDue)} hours`;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const addButton = document.querySelector('.add-button');
   const popup = document.querySelector('.add-task-popup');
@@ -453,17 +622,28 @@ document.addEventListener('DOMContentLoaded', () => {
   
   function addNewTask() {
     const taskText = input.value.trim();
+    const dateInput = popup.querySelector('.date-input');
+    const timeInput = popup.querySelector('.time-input');
+    
     if (taskText) {
+      const dueDate = dateInput.value && timeInput.value ? 
+        new Date(`${dateInput.value}T${timeInput.value}`) : null;
+      
       const newTask = { 
         id: Date.now(), 
         text: taskText, 
         quadrant: 'urgent-important', 
-        done: false 
+        done: false,
+        dueDate: dueDate ? dueDate.toISOString() : null
       };
+      
       tasks.push(newTask);
       saveTasks();
       renderTasks();
       hidePopup();
+      
+      // Check for due dates immediately after adding
+      checkDueDates();
     }
   }
   
@@ -486,6 +666,30 @@ document.addEventListener('DOMContentLoaded', () => {
       hidePopup();
     }
   });
+  
+  // Add import/export handlers
+  const exportBtn = document.querySelector('.matrix-button.export');
+  const importBtn = document.querySelector('.matrix-button.import');
+  const importFile = document.getElementById('import-file');
+  
+  exportBtn.addEventListener('click', exportMatrix);
+  
+  importBtn.addEventListener('click', () => {
+    importFile.click();
+  });
+  
+  importFile.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      importMatrix(e.target.files[0]);
+      e.target.value = ''; // Reset file input
+    }
+  });
+  
+  // Check due dates on load
+  checkDueDates();
+  
+  // Check due dates periodically
+  setInterval(checkDueDates, 60000); // Check every minute
 });
 
 renderTasks();

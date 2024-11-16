@@ -10,7 +10,7 @@
     <div class="bg-img">
         <img src="background.jpg">
     </div>
-  <h1>Eisenhower Matrix v1.3</h1>
+  <h1>Eisenhower Matrix v2</h1>
   <div class="matrix">
     <div class="quadrant" id="urgent-important">
       <h2>Urgent & Important</h2>
@@ -32,10 +32,19 @@
   <button class="add-button">+</button>
   <div class="add-task-popup">
     <input type="text" placeholder="Enter new task..." class="popup-input">
+    <div class="date-time-input">
+      <input type="date" class="date-input">
+      <input type="time" class="time-input">
+    </div>
     <div class="popup-buttons">
       <button class="popup-button cancel">Cancel</button>
       <button class="popup-button confirm">Add Task</button>
     </div>
+  </div>
+  <div class="matrix-controls">
+    <button class="matrix-button export">Export Matrix</button>
+    <button class="matrix-button import">Import Matrix</button>
+    <input type="file" id="import-file" accept=".json" style="display: none;">
   </div>
   <script src="script.js"></script>
 </body>
