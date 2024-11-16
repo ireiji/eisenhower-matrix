@@ -1,7 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
+:root {
+  --mac-window-bg: rgba(255, 255, 255, 0.85);
+  --mac-border-radius: 12px;
+  --mac-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   text-align: center;
   background-color: #f4f4f9;
   margin: 0;
@@ -26,21 +32,21 @@ body {
 }
 
 h1 {
-  color: #2c3e50;
-  font-weight: 600;
-  font-size: 2.5em;
+  font-weight: 500;
+  font-size: 2.2em;
+  color: #1d1d1f;
   margin-bottom: 30px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: none;
 }
 
 .matrix {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
-  gap: 20px;
+  gap: 24px;
   max-width: 1000px;
   margin: 20px auto;
-  padding: 20px;
+  padding: 24px;
   min-height: calc(100vh - 250px);
 }
 
@@ -50,12 +56,13 @@ h1 {
   display: flex;
   flex-direction: column;
   border: none;
-  border-radius: 15px;
-  padding: 20px;
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: var(--mac-border-radius);
+  padding: 16px;
+  background: var(--mac-window-bg);
+  box-shadow: var(--mac-shadow);
   transition: transform 0.2s ease;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .quadrant:hover {
@@ -64,10 +71,12 @@ h1 {
 }
 
 .quadrant h2 {
-  font-size: 1.1em;
-  color: #2c3e50;
-  margin-bottom: 15px;
-  font-weight: 600;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .task-list {
@@ -80,23 +89,24 @@ h1 {
 .task {
   padding: 12px 15px;
   margin: 8px 0;
-  background-color: #fff;
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 8px;
   cursor: grab;
   transform-origin: center center;
   user-select: none;
   position: relative;
   transition: all 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   font-size: 0.95em;
-  color: #34495e;
-  border-left: 4px solid #3498db;
+  color: #1d1d1f;
+  border-left: none;
   width: auto;
 }
 
 .task:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .task.done {
@@ -106,50 +116,113 @@ h1 {
   color: #7f8c8d;
 }
 
+/* Remove old controls styles */
 .controls {
-  margin: 30px auto;
-  max-width: 500px;
+  display: none;
 }
 
-#task-input {
-  padding: 12px 20px;
-  font-size: 16px;
-  border-radius: 25px;
-  border: 2px solid #e0e0e0;
-  width: 300px;
-  margin-right: 10px;
-  background-color: white;
-  transition: all 0.3s ease;
-  font-family: 'Poppins', sans-serif;
-}
-
-#task-input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-}
-
-#task-input::placeholder {
-  color: #95a5a6;
-}
-
-button {
-  padding: 12px 25px;
-  font-size: 1em;
-  color: #fff;
-  background-color: #3498db;
+/* Add Button */
+.add-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background: #0063e1;
   border: none;
-  border-radius: 25px;
+  color: white;
+  font-size: 24px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
 }
 
-button:hover {
-  background-color: #2980b9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+.add-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Add Task Popup */
+.add-task-popup {
+  position: fixed;
+  bottom: 85px;
+  right: 30px;
+  background: var(--mac-window-bg);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  width: 300px;
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.add-task-popup.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+.add-task-popup input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.add-task-popup input:focus {
+  outline: none;
+  border-color: #0063e1;
+  box-shadow: 0 0 0 3px rgba(0, 99, 225, 0.1);
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.popup-button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.popup-button.cancel {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
+}
+
+.popup-button.confirm {
+  background: #0063e1;
+  color: white;
+}
+
+.popup-button:hover {
+  transform: translateY(-1px);
+}
+
+.popup-button.cancel:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.popup-button.confirm:hover {
+  background: #0057c8;
 }
 
 /* Quadrant-specific colors */
@@ -208,15 +281,16 @@ body.delete-zone::after {
 
 .context-menu {
   position: fixed;
-  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 8px 0;
-  min-width: 180px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  min-width: 200px;
   z-index: 1000;
   transform-origin: top;
   animation: contextMenuSlide 0.2s ease;
-  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 @keyframes contextMenuSlide {
@@ -231,25 +305,34 @@ body.delete-zone::after {
 }
 
 .context-menu-item {
-  padding: 10px 15px;
-  cursor: pointer;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: #1d1d1f;
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #333;
-  font-size: 0.9em;
-  transition: all 0.2s ease;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 4px;
+  margin: 0 4px;
 }
 
 .context-menu-item:hover {
-  background-color: #f5f5f5;
-  padding-left: 20px;
+  background-color: #0071e3;
+  color: white;
+  padding-left: 12px;
 }
 
-.context-menu-item i {
-  font-size: 14px;
-  width: 20px;
-  opacity: 0.8;
+.context-menu-item:hover i,
+.context-menu-item:hover span {
+  color: white !important;
+  opacity: 1;
+}
+
+.context-menu-item .shortcut {
+  color: #86868b;
+  font-size: 12px;
+  transition: color 0.15s ease;
 }
 
 .context-menu-item:not(:last-child) {
@@ -258,9 +341,11 @@ body.delete-zone::after {
 
 .edit-menu {
   position: fixed;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  border-radius: var(--mac-border-radius);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: var(--mac-shadow);
   padding: 24px;
   z-index: 1000;
   min-width: 300px;
@@ -279,14 +364,20 @@ body.delete-zone::after {
 }
 
 .edit-menu::before {
-  content: 'Edit Task';
-  display: block;
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
+  content: '';
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1d1d1f;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.edit-menu::before {
+  content: '✎ Edit Task';
 }
 
 .edit-menu input {
@@ -362,4 +453,18 @@ body.delete-zone::after {
   cursor: grabbing;
   background-color: #fff;
   width: 200px !important;
+}
+
+/* Add icons to buttons */
+.edit-menu .buttons button::before {
+  margin-right: 6px;
+  font-size: 14px;
+}
+
+.edit-menu .buttons .save::before {
+  content: '✓';
+}
+
+.edit-menu .buttons .cancel::before {
+  content: '×';
 }

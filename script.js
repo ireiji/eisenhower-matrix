@@ -428,4 +428,77 @@ function isInsideAnyQuadrant(x, y) {
   return !!findQuadrantAtPoint(x, y);
 }
 
+function setupAddTaskButton() {
+  const addButton = document.createElement('button');
+  addButton.className = 'add-button';
+  addButton.innerHTML = '+';
+  
+  const popup = document.createElement('div');
+  popup.className = 'add-task-popup';
+  
+  popup.innerHTML = `
+    <input type="text" placeholder="Enter new task..." class="popup-input">
+    <div class="popup-buttons">
+      <button class="popup-button cancel">Cancel</button>
+      <button class="popup-button confirm">Add Task</button>
+    </div>
+  `;
+  
+  document.body.appendChild(addButton);
+  document.body.appendChild(popup);
+  
+  const input = popup.querySelector('input');
+  const cancelBtn = popup.querySelector('.cancel');
+  const confirmBtn = popup.querySelector('.confirm');
+  
+  function showPopup() {
+    popup.classList.add('active');
+    input.focus();
+  }
+  
+  function hidePopup() {
+    popup.classList.remove('active');
+    input.value = '';
+  }
+  
+  function addNewTask() {
+    const taskText = input.value.trim();
+    if (taskText) {
+      const newTask = { 
+        id: Date.now(), 
+        text: taskText, 
+        quadrant: 'urgent-important', 
+        done: false 
+      };
+      tasks.push(newTask);
+      saveTasks();
+      renderTasks();
+      hidePopup();
+    }
+  }
+  
+  addButton.onclick = showPopup;
+  cancelBtn.onclick = hidePopup;
+  confirmBtn.onclick = addNewTask;
+  
+  // Close popup when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!popup.contains(e.target) && !addButton.contains(e.target)) {
+      hidePopup();
+    }
+  });
+  
+  // Handle Enter and Escape keys
+  input.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') {
+      addNewTask();
+    } else if (e.key === 'Escape') {
+      hidePopup();
+    }
+  });
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', setupAddTaskButton);
+
 renderTasks();
