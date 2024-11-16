@@ -428,25 +428,9 @@ function isInsideAnyQuadrant(x, y) {
   return !!findQuadrantAtPoint(x, y);
 }
 
-function setupAddTaskButton() {
-  const addButton = document.createElement('button');
-  addButton.className = 'add-button';
-  addButton.innerHTML = '+';
-  
-  const popup = document.createElement('div');
-  popup.className = 'add-task-popup';
-  
-  popup.innerHTML = `
-    <input type="text" placeholder="Enter new task..." class="popup-input">
-    <div class="popup-buttons">
-      <button class="popup-button cancel">Cancel</button>
-      <button class="popup-button confirm">Add Task</button>
-    </div>
-  `;
-  
-  document.body.appendChild(addButton);
-  document.body.appendChild(popup);
-  
+document.addEventListener('DOMContentLoaded', () => {
+  const addButton = document.querySelector('.add-button');
+  const popup = document.querySelector('.add-task-popup');
   const input = popup.querySelector('input');
   const cancelBtn = popup.querySelector('.cancel');
   const confirmBtn = popup.querySelector('.confirm');
@@ -496,9 +480,6 @@ function setupAddTaskButton() {
       hidePopup();
     }
   });
-}
-
-// Call this function when the page loads
-document.addEventListener('DOMContentLoaded', setupAddTaskButton);
+});
 
 renderTasks();
