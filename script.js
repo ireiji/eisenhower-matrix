@@ -30,22 +30,13 @@ function renderTasks() {
   const quadrants = ['urgent-important', 'not-urgent-important', 'urgent-not-important', 'not-urgent-not-important'];
   quadrants.forEach(quadrant => {
     const taskList = document.getElementById(`${quadrant}-tasks`);
-    const existingTasks = Array.from(taskList.children);
+    if (!taskList) return;
     
-    // Store current positions of existing tasks
-    const oldPositions = new Map();
-    existingTasks.forEach(task => {
-      const rect = task.getBoundingClientRect();
-      oldPositions.set(task.querySelector('span').dataset.id, rect.top);
-    });
-    
-    // Clear the list
     taskList.innerHTML = '';
     
-    // Render new tasks
     tasks
       .filter(task => task.quadrant === quadrant)
-      .forEach((task, index) => {
+      .forEach(task => {
         const taskElement = document.createElement('div');
         taskElement.className = `task${task.done ? ' done' : ''}`;
         
@@ -78,7 +69,7 @@ function renderTasks() {
         
         taskElement.onclick = () => toggleDone(task.id);
         taskElement.onmousedown = e => {
-          if (e.button === 0) {
+          if (e.button === 0) { // Left click
             onDragStart(e, task.id, taskElement);
           }
         };
@@ -88,32 +79,6 @@ function renderTasks() {
         };
         
         taskList.appendChild(taskElement);
-        
-        // Apply animations
-        const oldPos = oldPositions.get(task.id);
-        if (oldPos) {
-          const newPos = taskElement.getBoundingClientRect().top;
-          const delta = oldPos - newPos;
-          if (delta !== 0) {
-            requestAnimationFrame(() => {
-              taskElement.style.transform = `translateY(${delta}px)`;
-              taskElement.style.opacity = '1';
-              
-              requestAnimationFrame(() => {
-                taskElement.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-                taskElement.style.transform = 'translateY(0)';
-              });
-            });
-          }
-        } else {
-          // New task animation
-          taskElement.style.opacity = '0';
-          taskElement.style.transform = 'translateY(20px)';
-          setTimeout(() => {
-            taskElement.style.opacity = '1';
-            taskElement.style.transform = 'translateY(0)';
-          }, 50);
-        }
       });
   });
 }
@@ -606,9 +571,33 @@ function formatTimeUntil(date) {
 document.addEventListener('DOMContentLoaded', () => {
   const addButton = document.querySelector('.add-button');
   const popup = document.querySelector('.add-task-popup');
-  const input = popup.querySelector('input');
+  const input = popup.querySelector('.popup-input');
   const cancelBtn = popup.querySelector('.cancel');
   const confirmBtn = popup.querySelector('.confirm');
+  
+  // Import/Export handlers
+  const exportBtn = document.querySelector('.matrix-button.export');
+  const importBtn = document.querySelector('.matrix-button.import');
+  const importFile = document.getElementById('import-file');
+  
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportMatrix);
+  }
+  
+  if (importBtn) {
+    importBtn.addEventListener('click', () => {
+      importFile.click();
+    });
+  }
+  
+  if (importFile) {
+    importFile.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        importMatrix(e.target.files[0]);
+        e.target.value = '';
+      }
+    });
+  }
   
   function showPopup() {
     popup.classList.add('active');
@@ -618,78 +607,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function hidePopup() {
     popup.classList.remove('active');
     input.value = '';
-  }
-  
-  function addNewTask() {
-    const taskText = input.value.trim();
-    const dateInput = popup.querySelector('.date-input');
-    const timeInput = popup.querySelector('.time-input');
-    
-    if (taskText) {
-      const dueDate = dateInput.value && timeInput.value ? 
-        new Date(`${dateInput.value}T${timeInput.value}`) : null;
-      
-      const newTask = { 
-        id: Date.now(), 
-        text: taskText, 
-        quadrant: 'urgent-important', 
-        done: false,
-        dueDate: dueDate ? dueDate.toISOString() : null
-      };
-      
-      tasks.push(newTask);
-      saveTasks();
-      renderTasks();
-      hidePopup();
-      
-      // Check for due dates immediately after adding
-      checkDueDates();
-    }
+    popup.querySelector('.date-input').value = '';
+    popup.querySelector('.time-input').value = '';
   }
   
   addButton.onclick = showPopup;
   cancelBtn.onclick = hidePopup;
   confirmBtn.onclick = addNewTask;
   
-  // Close popup when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!popup.contains(e.target) && !addButton.contains(e.target)) {
-      hidePopup();
-    }
-  });
-  
-  // Handle Enter and Escape keys
-  input.addEventListener('keyup', (e) => {
-    if (e.key === 'Enter') {
-      addNewTask();
-    } else if (e.key === 'Escape') {
-      hidePopup();
-    }
-  });
-  
-  // Add import/export handlers
-  const exportBtn = document.querySelector('.matrix-button.export');
-  const importBtn = document.querySelector('.matrix-button.import');
-  const importFile = document.getElementById('import-file');
-  
-  exportBtn.addEventListener('click', exportMatrix);
-  
-  importBtn.addEventListener('click', () => {
-    importFile.click();
-  });
-  
-  importFile.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-      importMatrix(e.target.files[0]);
-      e.target.value = ''; // Reset file input
-    }
-  });
-  
-  // Check due dates on load
-  checkDueDates();
-  
-  // Check due dates periodically
-  setInterval(checkDueDates, 60000); // Check every minute
+  // Check due dates on load and periodically
+  checkInitialDueDates();
+  setInterval(checkDueDates, 30000);
 });
 
 renderTasks();
