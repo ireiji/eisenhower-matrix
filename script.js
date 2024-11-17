@@ -13,7 +13,6 @@ let animationFrameId = null;
 let contextMenu = null;
 let editMenu = null;
 let lastDueCheck = null;
-let notificationSettings = loadNotificationSettings();
 
 function addTask() {
   const taskInput = document.getElementById('task-input');
@@ -755,56 +754,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start regular checks
     setInterval(checkDueDates, 30000);
   }, 1000);
-
-  // Settings button handler
-  const settingsBtn = document.querySelector('.matrix-button.settings');
-  const settingsModal = document.querySelector('.settings-modal');
-  
-  settingsBtn.addEventListener('click', showSettingsModal);
-  
-  // Settings modal handlers
-  const saveSettingsBtn = settingsModal.querySelector('.save');
-  const cancelSettingsBtn = settingsModal.querySelector('.cancel');
-  
-  saveSettingsBtn.addEventListener('click', () => {
-    // Update settings from checkboxes
-    notificationSettings.intervals = {
-      '24h': document.getElementById('notify-24h').checked,
-      '1h': document.getElementById('notify-1h').checked,
-      '30m': document.getElementById('notify-30m').checked,
-      '15m': document.getElementById('notify-15m').checked,
-      '5m': document.getElementById('notify-5m').checked
-    };
-    
-    saveNotificationSettings();
-    settingsModal.style.display = 'none';
-    showNotification('Settings saved successfully!', 'success');
-  });
-  
-  cancelSettingsBtn.addEventListener('click', () => {
-    settingsModal.style.display = 'none';
-  });
-  
-  // Close modal when clicking outside
-  settingsModal.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-      settingsModal.style.display = 'none';
-    }
-  });
-
-  const closeButton = document.querySelector('.settings-modal .close-button');
-  if (closeButton) {
-    closeButton.addEventListener('click', () => {
-      document.querySelector('.settings-modal').style.display = 'none';
-    });
-  }
 });
 
 // Add these helper functions if they're not already present
+// Update the saveTasks function
 function saveTasks() {
   localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
+// Update the loadTasks function
 function loadTasks() {
   const savedTasks = localStorage.getItem('tasks');
   const tasks = savedTasks ? JSON.parse(savedTasks) : [];
@@ -817,36 +775,6 @@ function loadTasks() {
   });
   
   return tasks;
-}
-
-function loadNotificationSettings() {
-  const defaultSettings = {
-    intervals: {
-      '24h': true,
-      '1h': true,
-      '30m': true,
-      '15m': true,
-      '5m': true
-    }
-  };
-  
-  const savedSettings = localStorage.getItem('notificationSettings');
-  return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
-}
-
-function saveNotificationSettings() {
-  setCookie('notificationSettings', notificationSettings);
-}
-
-function showSettingsModal() {
-  const modal = document.querySelector('.settings-modal');
-  modal.style.display = 'flex';
-  
-  // Set checkboxes based on current settings
-  Object.entries(notificationSettings.intervals).forEach(([interval, enabled]) => {
-    const checkbox = document.getElementById(`notify-${interval}`);
-    if (checkbox) checkbox.checked = enabled;
-  });
 }
 
 // Add these functions to handle body scroll locking
@@ -886,54 +814,5 @@ function getScrollbarWidth() {
   
   return scrollbarWidth;
 }
-
-// Update the settings modal handlers
-document.addEventListener('DOMContentLoaded', () => {
-  const settingsBtn = document.querySelector('.matrix-button.settings');
-  const settingsModal = document.querySelector('.settings-modal');
-  
-  // Show settings
-  if (settingsBtn) {
-    settingsBtn.addEventListener('click', () => {
-      settingsModal.style.display = 'flex';
-      lockBodyScroll();
-    });
-  }
-
-  // Close button
-  const closeButton = settingsModal.querySelector('.close-button');
-  if (closeButton) {
-    closeButton.addEventListener('click', () => {
-      settingsModal.style.display = 'none';
-      unlockBodyScroll();
-    });
-  }
-
-  // Save button
-  const saveSettingsBtn = settingsModal.querySelector('.save');
-  if (saveSettingsBtn) {
-    saveSettingsBtn.addEventListener('click', () => {
-      // Save settings logic...
-      settingsModal.style.display = 'none';
-      unlockBodyScroll();
-    });
-  }
-
-  // Cancel button
-  const cancelSettingsBtn = settingsModal.querySelector('.cancel');
-  if (cancelSettingsBtn) {
-    cancelSettingsBtn.addEventListener('click', () => {
-      settingsModal.style.display = 'none';
-      unlockBodyScroll();
-    });
-  }
-
-  // Click outside modal
-  settingsModal.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-      settingsModal.style.display = 'none';
-      unlockBodyScroll();
-    }
-  });
-});
 renderTasks();
+
