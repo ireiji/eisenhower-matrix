@@ -17,4 +17,4 @@
 ###          - Added import and export matrix
 ###          - Added Due Dates
 ###          - Added Notifications
-### v2.1 -> Added settings, and the ability to edit the due date
+### v2.1 -> Added the ability to edit the due date
