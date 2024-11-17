@@ -13,13 +13,14 @@ let animationFrameId = null;
 let contextMenu = null;
 let editMenu = null;
 let lastDueCheck = null;
+let notificationSettings = loadNotificationSettings();
 
 function addTask() {
   const taskInput = document.getElementById('task-input');
   const taskText = taskInput.value.trim();
   if (!taskText) return;
 
-  const newTask = { id: Date.now(), text: taskText, quadrant: 'urgent-important', done: false };
+  const newTask = { id: Date.now(), text: taskText, quadrant: 'urgent-important', done: false, notificationHistory: {} };
   tasks.push(newTask);
   saveTasks();
   taskInput.value = '';
@@ -376,81 +377,76 @@ function showContextMenu(event, task) {
 }
 
 function editTask(task) {
-  if (editMenu) {
-    editMenu.remove();
+  const editMenu = document.querySelector('.edit-menu');
+  const overlay = document.querySelector('.edit-overlay');
+  const input = editMenu.querySelector('.edit-input');
+  const dateInput = editMenu.querySelector('.edit-date-input');
+  const timeInput = editMenu.querySelector('.edit-time-input');
+  const saveButton = editMenu.querySelector('.save');
+  const cancelButton = editMenu.querySelector('.cancel');
+
+  // Set current values
+  input.value = task.text;
+  if (task.dueDate) {
+    const dueDate = new Date(task.dueDate);
+    dateInput.value = dueDate.toISOString().split('T')[0];
+    timeInput.value = dueDate.toTimeString().slice(0,5);
+  } else {
+    dateInput.value = '';
+    timeInput.value = '';
   }
 
-  // Create overlay
-  const overlay = document.createElement('div');
-  overlay.className = 'edit-overlay';
-  document.body.appendChild(overlay);
-  
-  // Activate overlay with slight delay for smooth transition
-  setTimeout(() => overlay.classList.add('active'), 0);
+  function closeEditMenu() {
+    editMenu.style.display = 'none';
+    overlay.style.display = 'none';
+    overlay.classList.remove('active');
+  }
 
-  editMenu = document.createElement('div');
-  editMenu.className = 'edit-menu';
-
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.value = task.text;
-  input.placeholder = 'Type your task here...';
-
-  const buttonsDiv = document.createElement('div');
-  buttonsDiv.className = 'buttons';
-
-  const saveButton = document.createElement('button');
-  saveButton.className = 'save';
-  saveButton.innerText = 'Save Changes';
-  saveButton.onclick = () => {
+  function saveChanges() {
     const newText = input.value.trim();
     if (newText) {
       task.text = newText;
+      
+      // Update due date
+      if (dateInput.value && timeInput.value) {
+        task.dueDate = new Date(`${dateInput.value}T${timeInput.value}`).toISOString();
+      } else {
+        task.dueDate = null;
+      }
+      
       saveTasks();
       renderTasks();
+      checkDueDates(); // Check due dates after editing
     }
     closeEditMenu();
-  };
-
-  const cancelButton = document.createElement('button');
-  cancelButton.className = 'cancel';
-  cancelButton.innerText = 'Cancel';
-  cancelButton.onclick = closeEditMenu;
-
-  function closeEditMenu() {
-    overlay.classList.remove('active');
-    setTimeout(() => {
-      editMenu.remove();
-      overlay.remove();
-    }, 200);
   }
 
-  buttonsDiv.appendChild(cancelButton);
-  buttonsDiv.appendChild(saveButton);
-  editMenu.appendChild(input);
-  editMenu.appendChild(buttonsDiv);
-
-  document.body.appendChild(editMenu);
-  const rect = editMenu.getBoundingClientRect();
-  editMenu.style.left = `${(window.innerWidth - rect.width) / 2}px`;
-  editMenu.style.top = `${(window.innerHeight - rect.height) / 2}px`;
-
+  // Show menu and overlay
+  editMenu.style.display = 'block';
+  overlay.style.display = 'block';
+  setTimeout(() => overlay.classList.add('active'), 0);
+  
+  // Focus input
   input.focus();
-  input.select();
+  input.setSelectionRange(0, input.value.length);
 
-  overlay.addEventListener('click', (e) => {
+  // Event listeners
+  saveButton.onclick = saveChanges;
+  cancelButton.onclick = closeEditMenu;
+  overlay.onclick = (e) => {
     if (e.target === overlay) {
       closeEditMenu();
     }
-  });
+  };
 
-  input.addEventListener('keyup', (e) => {
+  // Handle keyboard events
+  input.onkeyup = (e) => {
     if (e.key === 'Enter') {
-      saveButton.click();
+      saveChanges();
     } else if (e.key === 'Escape') {
-      cancelButton.click();
+      closeEditMenu();
     }
-  });
+  };
 }
 
 function isInsideAnyQuadrant(x, y) {
@@ -524,7 +520,7 @@ function showNotification(message, type = 'success') {
   const title = {
     'success': 'Success',
     'error': 'Error',
-    'warning': 'Warning'
+    'warning': 'Reminder'
   }[type] || 'Notification';
 
   notification.innerHTML = `
@@ -568,27 +564,54 @@ function formatDueDate(date) {
 function checkDueDates() {
   const now = new Date();
   
-  // Don't check more than once per minute
   if (lastDueCheck && (now - lastDueCheck) < 60000) return;
-  
   lastDueCheck = now;
   
-  const dueTasks = tasks.filter(task => {
-    if (!task.dueDate || task.done) return false;
+  const notificationIntervals = [
+    { key: '24h', minutes: 60 * 24, message: '24 hours' },
+    { key: '1h', minutes: 60, message: '1 hour' },
+    { key: '30m', minutes: 30, message: '30 minutes' },
+    { key: '15m', minutes: 15, message: '15 minutes' },
+    { key: '5m', minutes: 5, message: '5 minutes' }
+  ];
+  
+  tasks.forEach(task => {
+    if (!task.dueDate || task.done) return;
     
     const dueDate = new Date(task.dueDate);
-    const hoursUntilDue = (dueDate - now) / (1000 * 60 * 60);
+    const minutesUntilDue = (dueDate - now) / (1000 * 60);
     
-    return hoursUntilDue >= 0 && hoursUntilDue <= 24;
+    // Initialize notificationHistory if it doesn't exist
+    if (!task.notificationHistory) {
+      task.notificationHistory = {};
+    }
+    
+    // Check for overdue tasks - only notify once
+    if (minutesUntilDue < 0 && !task.notificationHistory.overdue) {
+      showNotification(`Task "${task.text}" is overdue!`, 'error');
+      task.notificationHistory.overdue = true;
+      saveTasks();
+      return;
+    }
+    
+    // Find the next notification interval
+    const nextInterval = notificationIntervals.find(interval => 
+      notificationSettings.intervals[interval.key] && // Only check enabled intervals
+      minutesUntilDue <= interval.minutes &&
+      minutesUntilDue > interval.minutes - 1 && // Within 1 minute of the interval
+      !task.notificationHistory[interval.key] // Haven't notified for this interval yet
+    );
+    
+    if (nextInterval) {
+      showNotification(
+        `Task "${task.text}" is due in ${nextInterval.message}`,
+        'warning'
+      );
+      // Mark this interval as notified
+      task.notificationHistory[nextInterval.key] = true;
+      saveTasks();
+    }
   });
-  
-  if (dueTasks.length > 0) {
-    const message = dueTasks.length === 1
-      ? `Task "${dueTasks[0].text}" is due in ${formatTimeUntil(new Date(dueTasks[0].dueDate))}`
-      : `${dueTasks.length} tasks are due in the next 24 hours`;
-      
-    showNotification(message, 'warning');
-  }
 }
 
 function formatTimeUntil(date) {
@@ -623,7 +646,7 @@ function checkInitialDueDates() {
     
     // Check for overdue tasks
     if (minutesUntilDue < 0) {
-      showNotification(`Task "${task.text}" is overdue!`, 'error');
+      showNotification(`Task "${task.text}" is overdue!`, 'warning');
       return;
     }
     
@@ -732,6 +755,49 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start regular checks
     setInterval(checkDueDates, 30000);
   }, 1000);
+
+  // Settings button handler
+  const settingsBtn = document.querySelector('.matrix-button.settings');
+  const settingsModal = document.querySelector('.settings-modal');
+  
+  settingsBtn.addEventListener('click', showSettingsModal);
+  
+  // Settings modal handlers
+  const saveSettingsBtn = settingsModal.querySelector('.save');
+  const cancelSettingsBtn = settingsModal.querySelector('.cancel');
+  
+  saveSettingsBtn.addEventListener('click', () => {
+    // Update settings from checkboxes
+    notificationSettings.intervals = {
+      '24h': document.getElementById('notify-24h').checked,
+      '1h': document.getElementById('notify-1h').checked,
+      '30m': document.getElementById('notify-30m').checked,
+      '15m': document.getElementById('notify-15m').checked,
+      '5m': document.getElementById('notify-5m').checked
+    };
+    
+    saveNotificationSettings();
+    settingsModal.style.display = 'none';
+    showNotification('Settings saved successfully!', 'success');
+  });
+  
+  cancelSettingsBtn.addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+  });
+  
+  // Close modal when clicking outside
+  settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.style.display = 'none';
+    }
+  });
+
+  const closeButton = document.querySelector('.settings-modal .close-button');
+  if (closeButton) {
+    closeButton.addEventListener('click', () => {
+      document.querySelector('.settings-modal').style.display = 'none';
+    });
+  }
 });
 
 // Add these helper functions if they're not already present
@@ -741,7 +807,133 @@ function saveTasks() {
 
 function loadTasks() {
   const savedTasks = localStorage.getItem('tasks');
-  return savedTasks ? JSON.parse(savedTasks) : [];
+  const tasks = savedTasks ? JSON.parse(savedTasks) : [];
+  
+  // Ensure all tasks have a notificationHistory field
+  tasks.forEach(task => {
+    if (!task.notificationHistory) {
+      task.notificationHistory = {};
+    }
+  });
+  
+  return tasks;
 }
 
+function loadNotificationSettings() {
+  const defaultSettings = {
+    intervals: {
+      '24h': true,
+      '1h': true,
+      '30m': true,
+      '15m': true,
+      '5m': true
+    }
+  };
+  
+  const savedSettings = localStorage.getItem('notificationSettings');
+  return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
+}
+
+function saveNotificationSettings() {
+  setCookie('notificationSettings', notificationSettings);
+}
+
+function showSettingsModal() {
+  const modal = document.querySelector('.settings-modal');
+  modal.style.display = 'flex';
+  
+  // Set checkboxes based on current settings
+  Object.entries(notificationSettings.intervals).forEach(([interval, enabled]) => {
+    const checkbox = document.getElementById(`notify-${interval}`);
+    if (checkbox) checkbox.checked = enabled;
+  });
+}
+
+// Add these functions to handle body scroll locking
+function lockBodyScroll() {
+  const scrollY = window.scrollY;
+  document.body.style.top = `-${scrollY}px`;
+  document.body.classList.add('scroll-locked');
+  
+  // Store the scroll position to restore it later
+  document.body.dataset.scrollPosition = scrollY;
+}
+
+function unlockBodyScroll() {
+  document.body.classList.remove('scroll-locked');
+  
+  // Restore the scroll position
+  const scrollY = document.body.dataset.scrollPosition;
+  window.scrollTo(0, parseInt(scrollY || '0'));
+  
+  // Clean up
+  document.body.style.top = '';
+  delete document.body.dataset.scrollPosition;
+}
+
+// Helper function to get scrollbar width
+function getScrollbarWidth() {
+  const outer = document.createElement('div');
+  outer.style.visibility = 'hidden';
+  outer.style.overflow = 'scroll';
+  document.body.appendChild(outer);
+  
+  const inner = document.createElement('div');
+  outer.appendChild(inner);
+  
+  const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+  outer.parentNode.removeChild(outer);
+  
+  return scrollbarWidth;
+}
+
+// Update the settings modal handlers
+document.addEventListener('DOMContentLoaded', () => {
+  const settingsBtn = document.querySelector('.matrix-button.settings');
+  const settingsModal = document.querySelector('.settings-modal');
+  
+  // Show settings
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'flex';
+      lockBodyScroll();
+    });
+  }
+
+  // Close button
+  const closeButton = settingsModal.querySelector('.close-button');
+  if (closeButton) {
+    closeButton.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+      unlockBodyScroll();
+    });
+  }
+
+  // Save button
+  const saveSettingsBtn = settingsModal.querySelector('.save');
+  if (saveSettingsBtn) {
+    saveSettingsBtn.addEventListener('click', () => {
+      // Save settings logic...
+      settingsModal.style.display = 'none';
+      unlockBodyScroll();
+    });
+  }
+
+  // Cancel button
+  const cancelSettingsBtn = settingsModal.querySelector('.cancel');
+  if (cancelSettingsBtn) {
+    cancelSettingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+      unlockBodyScroll();
+    });
+  }
+
+  // Click outside modal
+  settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.style.display = 'none';
+      unlockBodyScroll();
+    }
+  });
+});
 renderTasks();

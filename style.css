@@ -325,90 +325,57 @@ body.delete-zone::after {
 
 .edit-menu {
   position: fixed;
-  background: rgba(255, 255, 255, 0.85);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--mac-window-bg);
   backdrop-filter: blur(20px);
-  border-radius: var(--mac-border-radius);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: var(--mac-shadow);
+  -webkit-backdrop-filter: blur(20px);
   padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--mac-shadow);
   z-index: 1000;
   min-width: 300px;
-  animation: slideIn 0.2s ease;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.edit-menu::before {
-  content: '';
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #1d1d1f;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.edit-menu::before {
-  content: '✎ Edit Task';
-}
-
-.edit-menu input {
+.edit-menu input[type="text"] {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
   font-size: 14px;
-  transition: all 0.3s ease;
+  margin-bottom: 16px;
+  background: white;
   box-sizing: border-box;
-}
-
-.edit-menu input:focus {
-  outline: none;
-  border-color: #0288d1;
-  box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.1);
 }
 
 .edit-menu .buttons {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: flex-end;
 }
 
 .edit-menu button {
-  padding: 10px 20px;
-  border: none;
+  padding: 8px 16px;
   border-radius: 6px;
+  font-size: 13px;
+  border: none;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .edit-menu button.save {
-  background-color: #0288d1;
+  background: #0063e1;
   color: white;
 }
 
 .edit-menu button.cancel {
-  background-color: #f5f5f5;
-  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
 }
 
-.edit-menu button.cancel:hover {
-  background-color: #e0e0e0;
+.edit-menu button:hover {
   transform: translateY(-1px);
 }
 
@@ -581,4 +548,200 @@ body.delete-zone::after {
 .task.overdue .due-date {
   color: #e74c3c;
   font-weight: 500;
+}
+
+/* Settings Modal Styles */
+.settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-content {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.settings-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.close-button {
+  border: none;
+  background: none;
+  font-size: 24px;
+  color: #86868b;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.close-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.settings-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.section-header svg {
+  color: #0063e1;
+}
+
+.section-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 14px;
+  color: #1d1d1f;
+}
+
+/* Toggle Switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 27px;
+  width: 27px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input:checked + .toggle-slider {
+  background-color: #34c759;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.settings-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.settings-footer button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-footer button.save {
+  background: #0063e1;
+  color: white;
+  font-weight: 500;
+}
+
+.settings-footer button.cancel {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
+}
+
+.settings-footer button:hover {
+  transform: translateY(-1px);
+}
+
+/* Add these styles for when body is locked */
+body.scroll-locked {
+  overflow-y: scroll !important; /* Keep scrollbar visible */
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }
